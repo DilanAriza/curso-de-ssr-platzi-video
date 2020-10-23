@@ -2,6 +2,19 @@ import express from 'express';
 import config from './config/index';
 import webpack from 'webpack';
 
+//render
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import { Provider } from 'react-redux';
+import { StaticRouter } from 'react-router-dom';
+import { createStore, compose } from 'redux';
+import reducer from '../frontend/reducers';
+import initialState from '../frontend/initialState';
+import { renderRoutes } from 'react-router-config'
+
+//routes
+import serverRoutes from '../frontend/routes/serverRoutes'
+
 //Initial config
 const app = express();
 const { ENV, PORT } = config;
@@ -19,23 +32,39 @@ if (ENV === 'development') {
     app.use(webpackHotMiddleware(compiler));
 }
 
-app.get('*', (req, res) => {
-    res.send(`
-    <!DOCTYPE html>
-    <html>
+const setResponse = (html) => {
+    return(
+        `<!DOCTYPE html>
+        <html>
+    
+        <head>
+            <link rel="stylesheet" href="assets/app.css" type="text/css" />
+            <title>Platzi Video</title>
+        </head>
+    
+        <body>
+            <div id="app">${html}</div>
+            <script src="assets/app.js" type="text/javascript"></script>
+        </body>
+    
+        </html>`
+    );
+}
 
-    <head>
-        <link rel="stylesheet" href="assets/app.css" type="text/css" />
-        <title>Platzi Video</title>
-    </head>
+const renderApp = (req, res) => {
+    const store = createStore(reducer, initialState);
+    const html = renderToString(
+        <Provider store={store}>
+            <StaticRouter location={req.url} context={{}}>
+                {renderRoutes(serverRoutes)}
+            </StaticRouter>
+        </Provider>
+    );
 
-    <body>
-        <div id="app"></div>
-        <script src="assets/app.js" type="text/javascript"></script>
-    </body>
+    res.send(setResponse(html)); 
+}
 
-    </html>`);
-});
+app.get('*', renderApp);
 
 app.listen(PORT, (err) => {
     (err) ? console.log(err): console.log(`The server is runing in the port ${PORT}`)
