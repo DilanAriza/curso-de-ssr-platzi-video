@@ -14,6 +14,7 @@ import { renderRoutes } from 'react-router-config'
 
 //routes
 import serverRoutes from '../frontend/routes/serverRoutes'
+import Layout from '../frontend/components/Layout';
 
 //Initial config
 const app = express();
@@ -55,10 +56,12 @@ const renderApp = (req, res) => {
     const store = createStore(reducer, initialState);
     const html = renderToString(
         <Provider store={store}>
-            <StaticRouter location={req.url} context={{}}>
-                {renderRoutes(serverRoutes)}
-            </StaticRouter>
-        </Provider>
+            <Layout>
+                <StaticRouter location={req.url} context={{}}>
+                    {renderRoutes(serverRoutes)}
+                </StaticRouter>
+            </Layout>
+        </Provider>,
     );
 
     res.send(setResponse(html)); 
