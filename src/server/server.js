@@ -1,4 +1,5 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import config from './config/index';
 import webpack from 'webpack';
 
